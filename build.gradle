@@ -1,0 +1,83 @@
+import com.github.spotbugs.SpotBugsTask
+
+plugins {
+    id 'application'
+    id 'com.diffplug.gradle.spotless' version '3.24.0'
+    id 'com.github.spotbugs' version '2.0.0'
+    id 'idea'
+}
+
+repositories {
+    mavenCentral()
+    mavenLocal()
+}
+
+tasks.withType(SpotBugsTask) {
+    reports {
+        xml.enabled = false
+        html.enabled = true
+    }
+}
+
+spotless {
+    java {
+        googleJavaFormat('1.7')
+    }
+}
+
+idea {
+    module {
+        outputDir file('build/classes/main')
+        testOutputDir file('build/classes/test')
+    }
+}
+
+ext {
+    lombokVersion = '1.18.8'
+    jerseyVersion = '2.26'
+}
+
+dependencies {
+    compile 'tslic.discogs:discogs-jooq:1.0'
+    compile 'org.postgresql:postgresql:42.2.6'
+
+    // lombok
+    compileOnly "org.projectlombok:lombok:$lombokVersion"
+    annotationProcessor "org.projectlombok:lombok:$lombokVersion"
+
+    // jersey with grizzly2 http server
+    compile "org.glassfish.jersey.containers:jersey-container-grizzly2-http:$jerseyVersion"
+
+    // jersey cdi
+    compile "org.glassfish.jersey.inject:jersey-hk2:$jerseyVersion"
+    compile "org.glassfish.jersey.ext.cdi:jersey-weld2-se:$jerseyVersion"
+
+    // weld
+    compile "org.jboss.weld.se:weld-se-core:2.4.8.Final"
+
+    // jersey validation
+    compile "org.glassfish.jersey.ext:jersey-bean-validation:$jerseyVersion"
+
+    // jersey jackson
+    compile "org.glassfish.jersey.media:jersey-media-json-jackson:$jerseyVersion"
+
+    // jackson
+    compile 'com.fasterxml.jackson.core:jackson-databind:2.9.9.3'
+
+    // log4j2
+    compile 'org.apache.logging.log4j:log4j-api:2.11.2'
+    compile 'org.apache.logging.log4j:log4j-core:2.11.2'
+
+    // other
+    compile 'javax.activation:activation:1.1.1'
+    compile 'javax.servlet:javax.servlet-api:4.0.1'
+}
+
+task copyResources(type: Copy) {
+    from "${projectDir}/src/main/resources"
+    into "${buildDir}/classes/java/main"
+}
+
+processResources.dependsOn copyResources
+
+mainClassName = 'tslic.discogs.Main'
